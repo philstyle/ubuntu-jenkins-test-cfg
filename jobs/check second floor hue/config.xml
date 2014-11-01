@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>check the second floor hue bulbs&#xd;
+&#xd;
+http://10.144.24.201 /api/newdeveloper/lights/${VAR}&#xd;
+&#xd;
+1 &lt;= VAR &lt;= 5? (hardcoded for now)</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>tmpdir</name>
+          <description></description>
+          <defaultValue>/mnt/1GRAM</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>true</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>* * * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.22">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs class="empty-list"/>
+          <configFactories>
+            <hudson.plugins.parameterizedtrigger.CounterBuildParameterFactory>
+              <from>1</from>
+              <to>5</to>
+              <step>1</step>
+              <paramExpr>baseURL=http://10.144.24.201
+lightURI=/api/newdeveloper/lights/${COUNT}/
+writebackFileFullPath=${tmpdir}/2hue_${BUILD_ID}
+lightOnCallbackProject=2ndFloorLightOnAlertISY</paramExpr>
+              <validationFail>NOPARMS</validationFail>
+            </hudson.plugins.parameterizedtrigger.CounterBuildParameterFactory>
+          </configFactories>
+          <projects>check bulb</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block/>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+    <hudson.tasks.Shell>
+      <command>ONCOUNT=`awk &apos;{s+=$1}END{print s}&apos; ${tmpdir}/2hue_${BUILD_ID}`
+if [ &quot;$ONCOUNT&quot; -eq &quot;0&quot; ]
+then
+  curl --show-error http://automation:bade8136a8c1329579ed067c08db23e7@localhost:8080/job/2ndFloorLightOffAlertISY/build
+fi
+echo $ONCOUNT
+rm -f ${tmpdir}/2hue_${BUILD_ID}</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.test.AggregatedTestResultPublisher>
+      <includeFailedBuilds>true</includeFailedBuilds>
+    </hudson.tasks.test.AggregatedTestResultPublisher>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.8"/>
+  </buildWrappers>
+</project>

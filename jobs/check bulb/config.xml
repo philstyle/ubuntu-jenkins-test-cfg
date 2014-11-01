@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>takes a bulb URL and checks if it is on and reachable. Will succeed if true, fail of false.</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>1</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>baseURL</name>
+          <description>Base URL</description>
+          <defaultValue>http://10.144.24.200</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>lightURI</name>
+          <description>Light URI portion</description>
+          <defaultValue>/api/newdeveloper/lights/1/</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>writebackFileFullPath</name>
+          <description>writeback file for an individual build. allows aggregation by parent job.</description>
+          <defaultValue>/mnt/1GRAM/1stfloor</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>lightOnCallbackProject</name>
+          <description>job to call when the bulb is on and communicating</description>
+          <defaultValue>1stFloorLightOnAlertISY</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>ON=`node /opt/do-hue/isLightOnAndReachable.js ${baseURL} ${lightURI}`
+echo ${ON} &gt;&gt; ${writebackFileFullPath}
+#add logic here to send on if ${ON} == 1?
+if [ &quot;${ON}&quot; -eq &quot;1&quot; ]
+then
+  #node run something that sends a parameterized message to ISY
+  echo &quot;Light on!&quot;
+  curl --show-error http://automation:bade8136a8c1329579ed067c08db23e7@localhost:8080/job/${lightOnCallbackProject}/build
+  return 0;
+fi
+
+#exit
+return 1;</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.5.8"/>
+  </buildWrappers>
+</project>

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>CYCLE=`ps aux | grep &quot;cycle_paramd_hue.js&quot; | grep -v grep | wc -l`
+if [ &quot;${CYCLE}&quot; -gt &quot;0&quot; ] 
+then
+  echo &quot;all good&quot;
+else
+  node /opt/do-hue/cycle_paramd_hue.js &amp;
+fi</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
